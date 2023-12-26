@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import us.usserver.global.ExceptionMessage;
+import us.usserver.global.RedisUtil;
 import us.usserver.global.exception.MemberNotFoundException;
 import us.usserver.global.exception.TokenInvalidException;
 import us.usserver.member.Member;
@@ -38,6 +40,7 @@ public class TokenProvider {
     private String refreshHeader;
 
     private final MemberRepository memberRepository;
+    private final RedisUtil redisUtil;
     private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
     private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
     private static final String BEARER = "Bearer ";
@@ -89,7 +92,7 @@ public class TokenProvider {
      * redis <- refreshToken update
      */
     public void updateRefreshToken(String id, String refreshToken) {
-        //TODO: redis 설정 시 refreshToken 등록
+        redisUtil.setDateExpire(id, refreshToken, refreshTokenExpirationPeriod);
     }
 
     /**
@@ -115,9 +118,7 @@ public class TokenProvider {
     public String reissueToken(String refreshToken) {
         DecodedJWT decodedJWT = isTokenValid(refreshToken);
         Long id = decodedJWT.getClaim("id").asLong();
-        //TODO: redis 설정 시 redis에서 refreshToken을 가져와서 유효성 검사 진행
-        //String findToken = redis.getDate(id);
-        String findToken = null;
+        String findToken = redisUtil.getData(String.valueOf(id));
 
         if (findToken == null) {
             throw new TokenInvalidException(Token_NOT_FOUND);
@@ -137,6 +138,22 @@ public class TokenProvider {
                 .decode(token)
                 .getExpiresAt();
         return expiresAt.getTime() - new Date().getTime();
+    }
+
+    public String renewToken(String refreshToken) {
+        //request refreshToken -> User SocialId를 get -> redis refreshToken 유효한지 찾아서 검사
+        DecodedJWT decodedJWT = isTokenValid(refreshToken);
+        Long id = decodedJWT.getClaim("id").asLong();
+        String findToken = redisUtil.getData(String.valueOf(id));
+
+        if (findToken == null) {
+            throw new TokenInvalidException(Token_NOT_FOUND);
+        } else if (!findToken.equals(refreshToken)) {
+            throw new TokenInvalidException(Token_VERIFICATION);
+        }
+
+        Member member = memberRepository.findById(id).orElseThrow(() -> new MemberNotFoundException(Member_NOT_FOUND));
+        return createAccessToken(member);
     }
 
 }

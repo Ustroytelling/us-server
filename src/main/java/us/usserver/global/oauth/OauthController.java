@@ -1,5 +1,6 @@
 package us.usserver.global.oauth;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,7 +26,7 @@ public class OauthController {
 
     @GetMapping("/login")
     public ResponseEntity<ApiCsResponse<?>> loadOAuthLogin(HttpServletResponse servletResponse,
-                                                         @ModelAttribute LoginMemberResponse loginMemberResponse) {
+                                                           @ModelAttribute LoginMemberResponse loginMemberResponse) {
         Member member = null;
 
         if (loginMemberResponse.getRole().equals(Role.GUEST)) {
@@ -53,6 +54,19 @@ public class OauthController {
                 .data(member)
                 .build();
 
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/renew-token")
+    public ResponseEntity<ApiCsResponse<?>> renewToken(HttpServletRequest request, HttpServletResponse servletResponse) {
+        String refreshToken = tokenProvider.extractToken(request, "RefreshToken");
+        String accessToken = tokenProvider.renewToken(refreshToken);
+        servletResponse.addHeader(tokenProvider.getAccessHeader(), "Bearer " + accessToken);
+        ApiCsResponse<Object> response = ApiCsResponse.builder()
+                .status(HttpStatus.CREATED.value())
+                .message(HttpStatus.CREATED.getReasonPhrase())
+                .data(null)
+                .build();
         return ResponseEntity.ok(response);
     }
 }

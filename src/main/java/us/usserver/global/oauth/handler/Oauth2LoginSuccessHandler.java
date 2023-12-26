@@ -29,7 +29,6 @@ public class Oauth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         log.info("Oauth2 Login Success!");
         Member member = ((CustomOauth2User) authentication.getPrincipal()).getMember();
 
-        //TODO: url 수정
         UriComponentsBuilder redirectURLBuilder = UriComponentsBuilder.fromUriString("http://localhost:8080/oauth2/login")
                 .queryParam("email", member.getEmail())
                 .queryParam("socialType", member.getSocialType())
@@ -42,7 +41,7 @@ public class Oauth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         if (member.getRole().equals(Role.USER)) {
             String accessToken = tokenProvider.createAccessToken(member);
             String refreshToken = tokenProvider.createRefreshToken(member);
-            //TODO: redis 완료 시
+
             tokenProvider.updateRefreshToken(String.valueOf(member.getId()), refreshToken);
 
             redirectURLBuilder
