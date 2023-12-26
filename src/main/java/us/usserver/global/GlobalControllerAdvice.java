@@ -27,6 +27,13 @@ public class GlobalControllerAdvice {
         return new ApiCsResponse<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null);
     }
 
+    @ExceptionHandler(MemberNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected ApiCsResponse<Object> memberNotFoundHandler(Exception e) {
+        log.error(ExceptionMessage.Member_NOT_FOUND);
+        return new ApiCsResponse<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null);
+    }
+
     @ExceptionHandler(ChapterNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected ApiCsResponse<Object> chapterNotFoundHandler(Exception e) {
@@ -61,4 +68,13 @@ public class GlobalControllerAdvice {
         log.error(ExceptionMessage.Valid_RequestBody_NOT_FOUND);
         return new ApiCsResponse<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null);
     }
+
+    @ExceptionHandler(TokenInvalidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected ApiCsResponse<Object> tokenInvalidHandler(Exception e) {
+        log.error(ExceptionMessage.Token_VERIFICATION);
+        log.error(ExceptionMessage.Token_EXPIRED);
+        return new ApiCsResponse<>(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null);
+    }
+
 }
