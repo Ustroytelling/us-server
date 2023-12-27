@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import us.usserver.global.EntityService;
 import us.usserver.global.exception.MemberNotFoundException;
 import us.usserver.global.exception.TokenInvalidException;
 import us.usserver.member.Member;
@@ -30,6 +31,7 @@ import static us.usserver.global.ExceptionMessage.*;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final MemberRepository memberRepository;
     private final TokenProvider tokenProvider;
+    private final EntityService entityService;
 
     /**
      * 인증 하지 않는 페이지
@@ -56,7 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         //TODO: redis blacklist에 accessToken 값이 있는지(로그아웃을 한 사용자인지) 체크
         DecodedJWT decodedJWT = tokenProvider.isTokenValid(accessToken);
         Long id = decodedJWT.getClaim("id").asLong();
-        Member member = memberRepository.findById(id).orElseThrow(() -> new MemberNotFoundException(Member_NOT_FOUND));
+        Member member = entityService.getMember(id);
         Authentication authentication = new UsernamePasswordAuthenticationToken(member, null, Collections.singleton(new SimpleGrantedAuthority(member.getRole().toString())));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);

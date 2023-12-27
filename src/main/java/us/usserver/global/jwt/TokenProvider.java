@@ -11,9 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import us.usserver.global.ExceptionMessage;
+import us.usserver.global.EntityService;
 import us.usserver.global.RedisUtil;
-import us.usserver.global.exception.MemberNotFoundException;
 import us.usserver.global.exception.TokenInvalidException;
 import us.usserver.member.Member;
 import us.usserver.member.MemberRepository;
@@ -40,6 +39,7 @@ public class TokenProvider {
     private String refreshHeader;
 
     private final MemberRepository memberRepository;
+    private final EntityService entityService;
     private final RedisUtil redisUtil;
     private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
     private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
@@ -125,8 +125,7 @@ public class TokenProvider {
         } else if (!refreshToken.equals(findToken)) {
             throw new TokenInvalidException(Token_VERIFICATION);
         }
-
-        Member member = memberRepository.findById(id).orElseThrow(() -> new MemberNotFoundException(Member_NOT_FOUND));
+        Member member = entityService.getMember(id);
         return createAccessToken(member);
     }
 
@@ -152,7 +151,7 @@ public class TokenProvider {
             throw new TokenInvalidException(Token_VERIFICATION);
         }
 
-        Member member = memberRepository.findById(id).orElseThrow(() -> new MemberNotFoundException(Member_NOT_FOUND));
+        Member member = entityService.getMember(id);
         return createAccessToken(member);
     }
 
