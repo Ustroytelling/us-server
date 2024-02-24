@@ -41,7 +41,7 @@ public class NoteController {
     })
     @GetMapping("/viewed") // TODO: 내가 쓴 글
     public ResponseEntity<ApiCsResponse<?>> wroteParagraphs() {
-        Long authorId = 0L;
+        Long authorId = 500L;
         GetParagraphNote paragraphPreviews = noteService.wroteParagraphs(authorId);
 
         ApiCsResponse<Object> response = ApiCsResponse.builder()
@@ -62,7 +62,7 @@ public class NoteController {
     })
     @GetMapping("/voted") // TODO: 내가 투표한 글
     public ResponseEntity<ApiCsResponse<?>> votedParagraphs() {
-        Long authorId = 0L;
+        Long authorId = 500L;
         GetParagraphNote paragraphPreviews = noteService.votedParagraphs(authorId);
 
         ApiCsResponse<Object> response = ApiCsResponse.builder()
@@ -83,7 +83,7 @@ public class NoteController {
     })
     @GetMapping("/liked") // TODO: 내가 좋아요한 글
     public ResponseEntity<ApiCsResponse<?>> likedNovels() {
-        Long authorId = 0L;
+        Long authorId = 500L;
         GetParagraphNote paragraphPreviews = noteService.likedParagraphs(authorId);
 
         ApiCsResponse<Object> response = ApiCsResponse.builder()

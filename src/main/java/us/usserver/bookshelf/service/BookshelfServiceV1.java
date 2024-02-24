@@ -2,6 +2,7 @@ package us.usserver.bookshelf.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import us.usserver.author.Author;
@@ -10,6 +11,7 @@ import us.usserver.authority.AuthorityRepository;
 import us.usserver.bookshelf.BookshelfService;
 import us.usserver.bookshelf.dto.BookshelfDefaultResponse;
 import us.usserver.bookshelf.dto.NovelPreview;
+import us.usserver.chapter.Chapter;
 import us.usserver.global.EntityService;
 import us.usserver.like.novel.NovelLike;
 import us.usserver.like.novel.NovelLikeRepository;
@@ -27,6 +29,10 @@ public class BookshelfServiceV1 implements BookshelfService {
     private final AuthorityRepository authorityRepository;
     private final NovelLikeRepository novelLikeRepository;
 
+    @Value("${aws.public.ip}")
+    private String publicIp;
+
+
     @Override
     public BookshelfDefaultResponse recentViewedNovels(Long authorId) {
         Author author = entityService.getAuthor(authorId);
@@ -36,7 +42,7 @@ public class BookshelfServiceV1 implements BookshelfService {
                 .map(novel -> NovelPreview.fromNovel(
                         novel,
                         getTotalJoinedAuthor(novel),
-                        getShortcuts(novel)
+                        getShortcutToChapter(novel, null) // TODO: 최근 본 소설에서 몇 화(Chapter)를 봤는지 기억해야하는 기능이 필요
                 )).toList();
 
         return BookshelfDefaultResponse.builder().novelPreviews(novelPreviews).build();
@@ -59,7 +65,7 @@ public class BookshelfServiceV1 implements BookshelfService {
                 .map(novel -> NovelPreview.fromNovel(
                         novel,
                         getTotalJoinedAuthor(novel),
-                        getShortcuts(novel)
+                        getShortcutToNovel(novel)
                 )).toList();
 
         return BookshelfDefaultResponse.builder().novelPreviews(novelPreviews).build();
@@ -78,7 +84,7 @@ public class BookshelfServiceV1 implements BookshelfService {
                 .map(authority -> NovelPreview.fromNovel(
                         authority.getNovel(),
                         getTotalJoinedAuthor(authority.getNovel()),
-                        getShortcuts(authority.getNovel())
+                        getShortcutToNovel(authority.getNovel())
                 )).toList();
 
         return BookshelfDefaultResponse.builder().novelPreviews(novelPreviews).build();
@@ -98,7 +104,7 @@ public class BookshelfServiceV1 implements BookshelfService {
                 .map(likedNovel -> NovelPreview.fromNovel(
                         likedNovel.getNovel(),
                         getTotalJoinedAuthor(likedNovel.getNovel()),
-                        getShortcuts(likedNovel.getNovel())
+                        getShortcutToNovel(likedNovel.getNovel())
                 )).toList();
 
         return BookshelfDefaultResponse.builder().novelPreviews(novelPreviews).build();
@@ -113,11 +119,15 @@ public class BookshelfServiceV1 implements BookshelfService {
         novelLike.ifPresent(novelLikeRepository::delete);
     }
 
-    private Integer getTotalJoinedAuthor(Novel novel) {
-        return authorityRepository.countAllByNovel(novel);
+    private Integer getTotalJoinedAuthor(Novel novel){
+            return authorityRepository.countAllByNovel(novel);
     }
 
-    private String getShortcuts(Novel novel) { // TODO: 이후 URL에 따라 수정
-        return "http://localhost:8080/novel/" + novel.getId();
+    private String getShortcutToNovel(Novel novel) {
+        return "http://" + publicIp + ":8080/novel/" + novel.getId();
+    }
+
+    private String getShortcutToChapter(Novel novel, Chapter chapter) { // TODO: URL 숨기기 필요
+        return "http://" + publicIp + ":8080/chapter/" + novel.getId() + chapter.getId();
     }
 }

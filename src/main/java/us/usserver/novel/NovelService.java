@@ -5,7 +5,6 @@ import us.usserver.member.Member;
 import us.usserver.novel.dto.AuthorDescription;
 import us.usserver.novel.dto.NovelDetailInfo;
 import us.usserver.novel.dto.NovelInfo;
-import us.usserver.novel.dto.NovelSynopsis;
 import us.usserver.novel.dto.*;
 
 
@@ -21,9 +20,11 @@ public interface NovelService {
 
     NovelInfo createNovel(Member member, CreateNovelReq createNovelReq);
 
+    GetMainPageResponse getMainPageInfo(Member member);
+
     HomeNovelListResponse homeNovelInfo(Member member);
 
-    NovelPageInfoResponse moreNovel(MoreInfoOfNovel moreInfoOfNovel);
+    NovelPageInfoResponse moreNovel(ConditionsOfPagination conditionsOfPagination);
 
     NovelPageInfoResponse readMoreNovel(Member member, ReadInfoOfNovel readInfoOfNovel);
 

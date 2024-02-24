@@ -15,6 +15,7 @@ import us.usserver.novel.novelEnum.Sorts;
 public class SortDto {
     @Schema(description = "정렬 column", example = "HIT, NEW, LATEST")
     private Sorts sorts;
+
     @Schema(description = "정렬 type", example = "ASC, DESC")
     private Orders orders;
 }

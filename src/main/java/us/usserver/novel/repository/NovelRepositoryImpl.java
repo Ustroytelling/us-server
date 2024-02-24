@@ -5,13 +5,14 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 import us.usserver.novel.Novel;
 import us.usserver.novel.NovelRepository;
-import us.usserver.novel.dto.MoreInfoOfNovel;
+import us.usserver.novel.dto.ConditionsOfPagination;
 import us.usserver.novel.dto.SearchNovelReq;
 import us.usserver.novel.dto.SortDto;
 import us.usserver.novel.novelEnum.Hashtag;
@@ -31,16 +32,27 @@ public class NovelRepositoryImpl implements NovelRepository {
     private final NovelJpaRepository novelJpaRepository;
 
     @Override
-    public Slice<Novel> moreNovelList(MoreInfoOfNovel moreInfoOfNovel, Pageable pageable) {
-        List<Novel> novels = getMoreNovel(moreInfoOfNovel, pageable);
+    public Novel save(Novel novel) {
+        return novelJpaRepository.save(novel);
+    }
+
+    @Override
+    public void delete(Novel novel) {
+        novelJpaRepository.delete(novel);
+    }
+
+    @Override
+    public Slice<Novel> moreNovelList(ConditionsOfPagination conditionsOfPagination, Pageable pageable) {
+        List<Novel> novels = getMoreNovel(conditionsOfPagination, pageable);
 
         return checkLastPage(pageable, novels);
     }
 
     @Override
-    public Novel save(Novel novel) {
-        return novelJpaRepository.save(novel);
+    public Slice<Novel> getNovelList(Pageable pageable) {
+        return novelJpaRepository.findSliceBy(pageable);
     }
+
 
     @Override
     public Slice<Novel> searchNovelList(SearchNovelReq searchNovelReq, Pageable pageable) {
@@ -49,12 +61,12 @@ public class NovelRepositoryImpl implements NovelRepository {
         return checkLastPage(pageable, novels);
     }
 
-    private List<Novel> getMoreNovel(MoreInfoOfNovel moreInfoOfNovel, Pageable pageable) {
+    private List<Novel> getMoreNovel(ConditionsOfPagination conditionsOfPagination, Pageable pageable) {
         return queryFactory
                 .select(novel)
                 .from(novel)
-                .where(ltNovelId(moreInfoOfNovel.getLastNovelId()))
-                .orderBy(novelSort(moreInfoOfNovel.getSortDto()))
+                .where(ltNovelId(conditionsOfPagination.getLastNovelId()))
+                .orderBy(novelSort(conditionsOfPagination.getSortDto()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize()+1)
                 .fetch();
@@ -71,7 +83,7 @@ public class NovelRepositoryImpl implements NovelRepository {
                         eqNovelStatus(searchNovelReq.getStatus()))
                 .orderBy(novelSort(searchNovelReq.getSortDto()))
                 .offset(pageable.getOffset())
-                .limit(pageable.getPageSize()+1)
+                .limit(pageable.getPageSize() + 1)
                 .fetch();
     }
 
@@ -93,24 +105,15 @@ public class NovelRepositoryImpl implements NovelRepository {
 
     private OrderSpecifier<?> novelSort(SortDto sortDto) {
         if (sortDto == null) {
-            //Default:사전순
             return new OrderSpecifier<>(Order.ASC, novel.title);
         }
 
         Order direction = (sortDto.getOrders() == Orders.DESC) ? Order.DESC : Order.ASC;
         switch (sortDto.getSorts()) {
-            case LATEST -> {
-                //최신 업데이트순
-                return new OrderSpecifier<>(direction, novel.updatedAt);
-            }
-            case NEW -> {
-                //신작순
-                return new OrderSpecifier<>(direction, novel.createdAt);
-            }
-            default -> {
-                //조회순
-                return new OrderSpecifier<>(direction, novel.hit);
-            }
+            case CREATED_AT, LATEST -> { return new OrderSpecifier<>(direction, novel.createdAt); }
+            case UPDATED_AT, NEW -> { return new OrderSpecifier<>(direction, novel.updatedAt); }
+            case HIT -> { return new OrderSpecifier<>(direction, novel.hit); }
+            default -> { return new OrderSpecifier<>(Order.ASC, novel.title); }
         }
     }
 

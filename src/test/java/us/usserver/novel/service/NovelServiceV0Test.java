@@ -324,7 +324,7 @@ class NovelServiceV0Test {
         //given
         HomeNovelListResponse homeNovelListResponse = novelServiceV0.homeNovelInfo();
         Novel realTimeNovel = homeNovelListResponse.getRealTimeNovels().get(homeNovelListResponse.getRealTimeNovels().size() - 1);
-        MoreInfoOfNovel moreInfoOfNovel = MoreInfoOfNovel.builder()
+        ConditionsOfPagination moreInfoOfNovel = ConditionsOfPagination.builder()
                 .lastNovelId(realTimeNovel.getId())
                 .size(3)
                 .sortDto(SortDto.builder().sorts(Sorts.LATEST).orders(Orders.DESC).build())
@@ -344,7 +344,7 @@ class NovelServiceV0Test {
         //given
         HomeNovelListResponse homeNovelListResponse = novelServiceV0.homeNovelInfo();
         Novel newNovel = homeNovelListResponse.getNewNovels().get(homeNovelListResponse.getNewNovels().size() - 1);
-        MoreInfoOfNovel moreInfoOfNovel = MoreInfoOfNovel.builder()
+        ConditionsOfPagination moreInfoOfNovel = ConditionsOfPagination.builder()
                 .lastNovelId(newNovel.getId())
                 .size(3)
                 .sortDto(SortDto.builder().sorts(Sorts.NEW).orders(Orders.DESC).build())

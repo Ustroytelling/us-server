@@ -115,6 +115,23 @@ public class NovelController {
         return ResponseEntity.created(URI.create("")).body(response);
     }
 
+    @Operation(summary = "앱 메인 페이지", description = "메인 페이지 컨텐츠를 불러온다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "메인 페이지 불러오기 성공",
+            content = @Content(schema = @Schema(implementation = GetMainPageResponse.class)))
+    })
+    @GetMapping
+    public ResponseEntity<ApiCsResponse<?>> getMainPageInfo(@AuthenticationPrincipal Member member) {
+        GetMainPageResponse mainPageInfo = novelService.getMainPageInfo(member);
+
+        ApiCsResponse<Object> response = ApiCsResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message(HttpStatus.OK.getReasonPhrase())
+                .data(mainPageInfo)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
     @Operation(summary = "우스 메인 홈", description = "메인 페이지 소설을 불러오는 API")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "소설 메인 페이지 load 성공",
@@ -141,9 +158,10 @@ public class NovelController {
             @ApiResponse(responseCode = "200", description = "소설 더보기 load 성공",
                     content = @Content(schema = @Schema(implementation = NovelPageInfoResponse.class)))
     })
+
     @GetMapping("/main/more")
-    public ResponseEntity<ApiCsResponse<?>> moreNovel(@Valid MoreInfoOfNovel moreInfoOfNovel) {
-        NovelPageInfoResponse novelPageInfoResponse = novelService.moreNovel(moreInfoOfNovel);
+    public ResponseEntity<ApiCsResponse<?>> moreNovel(@Valid ConditionsOfPagination conditionsOfPagination) {
+        NovelPageInfoResponse novelPageInfoResponse = novelService.moreNovel(conditionsOfPagination);
 
         ApiCsResponse<Object> response = ApiCsResponse.builder()
                 .status(HttpStatus.OK.value())
@@ -162,6 +180,7 @@ public class NovelController {
     public ResponseEntity<ApiCsResponse<?>> readNovel(@AuthenticationPrincipal Member member,
                                                       @Valid ReadInfoOfNovel readInfoOfNovel) {
         NovelPageInfoResponse novelPageInfoResponse = novelService.readMoreNovel(member, readInfoOfNovel);
+
         ApiCsResponse<Object> response = ApiCsResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message(HttpStatus.OK.getReasonPhrase())

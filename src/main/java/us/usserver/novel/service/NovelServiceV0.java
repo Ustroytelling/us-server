@@ -1,10 +1,12 @@
 package us.usserver.novel.service;
 
+import com.querydsl.core.types.Order;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -25,8 +27,8 @@ import us.usserver.novel.NovelRepository;
 import us.usserver.novel.NovelService;
 import us.usserver.novel.dto.*;
 import us.usserver.novel.novelEnum.Orders;
+import us.usserver.novel.novelEnum.SortColumn;
 import us.usserver.novel.novelEnum.Sorts;
-import us.usserver.novel.repository.NovelJpaRepository;
 import us.usserver.stake.StakeService;
 import us.usserver.stake.dto.GetStakeResponse;
 import us.usserver.stake.dto.StakeInfo;
@@ -47,18 +49,18 @@ public class NovelServiceV0 implements NovelService {
 
     private final AuthorityRepository authorityRepository;
     private final AuthorRepository authorRepository;
-    private final NovelJpaRepository novelJpaRepository;
     private final NovelRepository novelRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
     private static final Integer RECENT_KEYWORD_SIZE = 10;
+    private static final Integer DEFAULT_PAGE_SIZE = 6;
 
     @Override
     public NovelInfo createNovel(Member member, CreateNovelReq createNovelReq) {
         Author author = getAuthor(member);
 
         Novel novel = createNovelReq.toEntity(author);
-        Novel saveNovel = novelJpaRepository.save(novel);
+        Novel saveNovel = novelRepository.save(novel);
 
         author.getCreatedNovels().add(novel);
         authorityRepository.save(Authority.builder().author(author).novel(novel).build());
@@ -143,14 +145,33 @@ public class NovelServiceV0 implements NovelService {
     }
 
     @Override
+    public GetMainPageResponse getMainPageInfo(Member member) {
+        Author author = getAuthor(member);
+
+        PageRequest realTimeUpdates = PageRequest.of(0, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, SortColumn.updatedAt.toString()));
+        PageRequest recentlyCreated = PageRequest.of(0, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, SortColumn.createdAt.toString()));
+        PageRequest recentlyCreated = PageRequest.of(0, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, SortColumn.createdAt.toString()));
+
+        Slice<NovelInfo> realTimeUpdatesNovel = novelRepository
+                .getNovelList(realTimeUpdates)
+                .map(NovelInfo::mapNovelToNovelInfo);
+
+        Slice<NovelInfo> recentlyCreatedNovel = novelRepository
+                .getNovelList(recentlyCreated)
+                .map(NovelInfo::mapNovelToNovelInfo);
+
+        GetMainPageResponse.builder().readNovels()
+    }
+
+    @Override
     public HomeNovelListResponse homeNovelInfo(Member member) {
         Author author = getAuthor(member);
-        MoreInfoOfNovel realTimeNovels = MoreInfoOfNovel.builder()
+        ConditionsOfPagination realTimeNovels = ConditionsOfPagination.builder()
                 .lastNovelId(501L)
                 .sortDto(SortDto.builder().sorts(Sorts.LATEST).orders(Orders.DESC).build())
                 .build();
 
-        MoreInfoOfNovel newNovels = MoreInfoOfNovel.builder()
+        ConditionsOfPagination newNovels = ConditionsOfPagination.builder()
                 .lastNovelId(501L)
                 .sortDto(SortDto.builder().sorts(Sorts.NEW).orders(Orders.DESC).build())
                 .build();
@@ -167,11 +188,11 @@ public class NovelServiceV0 implements NovelService {
     }
 
     @Override
-    public NovelPageInfoResponse moreNovel(MoreInfoOfNovel moreInfoOfNovel) {
-        PageRequest pageable = getPageRequest(moreInfoOfNovel);
-        Slice<Novel> novelSlice = novelRepository.moreNovelList(moreInfoOfNovel, pageable);
+    public NovelPageInfoResponse moreNovel(ConditionsOfPagination conditionsOfPagination) {
+        PageRequest pageable = getPageRequest(conditionsOfPagination);
+        Slice<Novel> novelSlice = novelRepository.moreNovelList(conditionsOfPagination, pageable);
 
-        return getNovelPageInfoResponse(novelSlice, moreInfoOfNovel.getSortDto());
+        return getNovelPageInfoResponse(novelSlice, conditionsOfPagination.getSortDto());
     }
     @Override
     public NovelPageInfoResponse readMoreNovel(Member member, ReadInfoOfNovel readInfoOfNovel){
@@ -201,11 +222,11 @@ public class NovelServiceV0 implements NovelService {
         }
     }
 
-    private PageRequest getPageRequest(MoreInfoOfNovel moreInfoOfNovel) {
-        if (moreInfoOfNovel.getSize() == null) {
-            moreInfoOfNovel.setSize(6);
+    private PageRequest getPageRequest(ConditionsOfPagination conditions) {
+        if (conditions.getSize() == null) {
+            conditions.setSize(6);
         }
-        return PageRequest.ofSize(moreInfoOfNovel.getSize());
+        return PageRequest.ofSize(conditions.getSize());
     }
 
     private NovelPageInfoResponse getNovelPageInfoResponse(Slice<Novel> novelSlice, SortDto novelMoreDto) {

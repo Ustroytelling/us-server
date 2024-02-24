@@ -36,6 +36,7 @@ public class AuthorController {
     public ResponseEntity<ApiCsResponse<?>> updateAuthor(@AuthenticationPrincipal Member member,
                                                          @ModelAttribute UpdateAuthorReq updateAuthorReq) {
         authorService.updateAuthor(member.getId(), updateAuthorReq);
+
         ApiCsResponse<Object> response = ApiCsResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message(HttpStatus.OK.getReasonPhrase())
