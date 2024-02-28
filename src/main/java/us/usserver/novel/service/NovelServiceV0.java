@@ -150,7 +150,7 @@ public class NovelServiceV0 implements NovelService {
 
         PageRequest realTimeUpdates = PageRequest.of(0, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, SortColumn.updatedAt.toString()));
         PageRequest recentlyCreated = PageRequest.of(0, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, SortColumn.createdAt.toString()));
-        PageRequest recentlyCreated = PageRequest.of(0, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, SortColumn.createdAt.toString()));
+        PageRequest popular = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, SortColumn.hit.toString()));
 
         Slice<NovelInfo> realTimeUpdatesNovel = novelRepository
                 .getNovelList(realTimeUpdates)
