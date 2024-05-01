@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import us.usserver.notification.dto.NotificationInfo;
+import us.usserver.domain.notification.dto.NotificationInfo;
 
 @Getter
 @Builder

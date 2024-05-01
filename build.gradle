@@ -21,6 +21,7 @@ jar { enabled = false }
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -47,8 +48,11 @@ dependencies {
     // oauth2-client 라이브러리
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
-    //JWT
+    // JWT
     implementation 'com.auth0:java-jwt:4.2.1'
+
+    // 한글 형태소 분석기
+    implementation 'com.github.shin285:KOMORAN:3.3.9'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

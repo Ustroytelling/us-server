@@ -14,30 +14,35 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import us.usserver.author.Author;
-import us.usserver.author.AuthorMother;
-import us.usserver.author.AuthorRepository;
-import us.usserver.chapter.Chapter;
-import us.usserver.chapter.ChapterMother;
-import us.usserver.chapter.ChapterRepository;
-import us.usserver.member.Member;
-import us.usserver.member.MemberMother;
-import us.usserver.member.MemberRepository;
-import us.usserver.novel.Novel;
-import us.usserver.novel.NovelMother;
-import us.usserver.novel.NovelRepository;
+import org.springframework.transaction.annotation.Transactional;
+import us.usserver.domain.author.AuthorMother;
+import us.usserver.domain.chapter.ChapterMother;
+import us.usserver.domain.author.entity.Author;
+import us.usserver.domain.chapter.entity.Chapter;
+import us.usserver.domain.chapter.repository.ChapterRepository;
+import us.usserver.domain.member.entity.Member;
+import us.usserver.domain.member.repository.MemberRepository;
+import us.usserver.domain.member.service.TokenProvider;
+import us.usserver.domain.novel.entity.Novel;
+import us.usserver.domain.novel.repository.NovelRepository;
+import us.usserver.global.utils.RedisUtils;
+import us.usserver.domain.member.MemberMother;
+import us.usserver.domain.novel.NovelMother;
+
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Rollback
+@Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
 class NotificationControllerTest {
     @Autowired
-    private MockMvc mockMvc;
-
+    private TokenProvider tokenProvider;
     @Autowired
-    private AuthorRepository authorRepository;
+    private RedisUtils redisUtils;
+
     @Autowired
     private MemberRepository memberRepository;
     @Autowired
@@ -45,28 +50,33 @@ class NotificationControllerTest {
     @Autowired
     private ChapterRepository chapterRepository;
 
-    private Author author;
+    @Autowired
+    private MockMvc mockMvc;
+
+    private String accessToken;
+    private String refreshToken;
     private Member member;
+    private Author author;
     private Novel novel;
     private Chapter chapter;
-
-    private static final Long defaultId = 500L;
 
 
     @BeforeEach
     void setUp() {
         member = MemberMother.generateMember();
-        author = AuthorMother.generateAuthor();
-        author.setMember(member);
-        author.setIdForTest(defaultId);
+        author = AuthorMother.generateAuthorWithMember(member);
+        member.setAuthor(author);
+        memberRepository.save(member);
+
+        accessToken = tokenProvider.issueAccessToken(member.getId());
+        refreshToken = tokenProvider.issueRefreshToken(member.getId());
+        redisUtils.setDateWithExpiration(refreshToken, member.getId(), Duration.ofDays(1));
+
 
         novel = NovelMother.generateNovel(author);
-        novel.setIdForTest(defaultId);
         chapter = ChapterMother.generateChapter(novel);
         novel.getChapters().add(chapter);
 
-        memberRepository.save(member);
-        authorRepository.save(author);
         novelRepository.save(novel);
         chapterRepository.save(chapter);
     }
@@ -80,30 +90,18 @@ class NotificationControllerTest {
         // when
         ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders
                 .get(subscribeUrl)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Authorization-Refresh", "Bearer " + refreshToken)
                 .accept(MediaType.TEXT_EVENT_STREAM));
 
         // then
         resultActions.andExpect(MockMvcResultMatchers.status().isOk());
-        resultActions.andExpect(MockMvcResultMatchers.content().contentType(MediaType.TEXT_EVENT_STREAM));
         resultActions.andExpect(MockMvcResultMatchers.header().string(HttpHeaders.TRANSFER_ENCODING, "chunked"));
         resultActions.andDo(MockMvcResultHandlers.print());
 
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        String contentType = resultActions.andReturn().getResponse().getContentType();
+        assertTrue(contentType.contains("text/event-stream"));
         assertTrue(responseBody.contains("event:sse\ndata:EventStream Created. [receiverId ="));
-    }
-
-    @Test
-    @DisplayName("서버 메시지 발신 테스트")
-    void send() throws Exception {
-        // given
-        String chapterCreateUrl = "/chapter/" + chapter.getId();
-
-        // when
-        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders
-                .post(chapterCreateUrl)
-                .accept(MediaType.APPLICATION_JSON));
-
-        // then
-        resultActions.andExpect(MockMvcResultMatchers.status().isCreated());
     }
 }

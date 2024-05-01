@@ -3,87 +3,45 @@ package us.usserver.global.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
+import us.usserver.global.filter.JwtAuthenticationFilter;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
-@RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
-//    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-//    private final CustomOAuth2UserService customOAuth2UserService;
-//    private final Oauth2LoginSuccessHandler oauth2LoginSuccessHandler;
-//    private final Oauth2LoginFailureHandler oauth2LoginFailureHandler;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception {
-        http
-                .httpBasic(AbstractHttpConfigurer::disable)
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(withDefaults());
-
-        http
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        http
-                .authorizeHttpRequests(
-                        getCustomizer(introspector,
-                                //TODO: 아래 patterns는 1차 개발 이후 정리 예정
-                                "/", "/login**", "/oauth**", "/member/join",
-                                "/resources/**", "/favicon.ico", //resource
-                                "/swagger-ui/**", "/api-docs/**", //swagger
-                                "/**" // api 테스트할 때 자꾸 막혀서 귀찮아서 이렇게 만들었어용 TODO: 곧 지움
-                        )
-                );
-
-        http
-                .formLogin(
-                        login -> {
-                            login.loginPage("/login"); //미인증자일경우 해당 uri를 호출
-                            login.loginProcessingUrl("/login"); //login 주소가 호출되면 시큐리티가 낚아 채서(post로 오는것) 대신 로그인 진행 -> 컨트롤러를 안만들어도 된다.
-                            login.defaultSuccessUrl("/novel/main");
-                        }
-                );
-
-//        http
-//                .oauth2Login(
-//                        oauth -> {
-//                            oauth.loginPage("/loginForm");
-//                            oauth.defaultSuccessUrl("/");
-//                            oauth.userInfoEndpoint(userService -> userService.userService(customOAuth2UserService));
-//                            oauth.successHandler(oauth2LoginSuccessHandler);
-//                            oauth.failureHandler(oauth2LoginFailureHandler);
-//                        }
-//                );
-
-//        http
-//                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-
+                .cors(withDefaults())
+                .formLogin(AbstractHttpConfigurer::disable);
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
-    private Customizer<AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry> getCustomizer(HandlerMappingIntrospector introspector, String... patterns) {
-        return (request) -> {
-            Arrays.stream(patterns).forEach(pattern -> {
-                request.requestMatchers(new MvcRequestMatcher(introspector, pattern)).permitAll();
-            });
-            request.anyRequest().authenticated();
-        };
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring().requestMatchers(
+                        "/", "/oauth2**",
+                        "/resources/**", "/favicon.ico", //resource
+                        "/swagger-ui/**", "/api-docs/**"); //swagger
     }
 
     @Bean
