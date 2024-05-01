@@ -103,7 +103,7 @@ class ParagraphServiceTest {
 
         // then
         assertNotNull(paragraphs.getMyParagraph());
-        assertNull(paragraphs.getBestParagraph());
+        assertNotNull(paragraphs.getBestParagraph());
         assertThat(paragraphs.getSelectedParagraphs()).isEqualTo(Collections.emptyList());
     }
 

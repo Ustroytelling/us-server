@@ -1,0 +1,124 @@
+# GitHub Action 설정
+name: 🚀 Build & Deploy workflow environment in Develop
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [closed]
+  push: #test용
+    branches: [develop]
+
+env:
+  ENV_PATH: ./src/main/resources
+  ENV_DB: application-db.yml
+  ENV_AUTH: application-auth.yml
+
+  DOCKER_CONTAINER_NAME: us-server-dev
+
+  AWS_REGION: ap-northeast-2
+  AWS_ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY_NAME }}
+  AWS_ECS_SERVICE: m
+  AWS_ECS_CLUSTER: m
+  AWS_ECS_TASK_DEFINITION: m
+
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ✅ Checkout branch
+        uses: actions/checkout@v3
+
+      - name: 📀 Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+
+      - name: 💽 Make application-db.yml
+        run: |
+          cd ${{ env.ENV_PATH }}
+          touch ${{ env.ENV_DB }}
+          echo "${{ secrets.DEV_DB_CONFIG }}" >> ${{ env.ENV_DB }}
+        shell: bash
+
+      - name: 🔑 Make application-auth.yml
+        run: |
+          cd ${{ env.ENV_PATH }}
+          touch ${{ env.ENV_AUTH }}
+          echo "${{ secrets.DEV_AUTH_CONFIG }}" > ${{ env.ENV_AUTH }}
+        shell: bash
+
+      - name: ✨ Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: 🔨 Build with Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: clean build -x test
+          gradle-version: 8.3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: develop
+    steps:
+      - name: ✅ Checkout
+        uses: actions/checkout@v3
+
+      - name: 🧳 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 🌎 Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: ⚡ Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/${{ env.AWS_ECR_REPOSITORY }}:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/${{ env.AWS_ECR_REPOSITORY }}:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/${{ env.AWS_ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
+#
+#      - name: Fill in the new image ID in the Amazon ECS task definition
+#        id: task-def
+#        uses: aws-actions/amazon-ecs-render-task-definition@v1
+#        with:
+#          task-definition: ${{ env.AWS_ECS_TASK_DEFINITION }}
+#          container-name: ${{ env.DOCKER_CONTAINER_NAME }}
+#          image: ${{ steps.build-image.outputs.image }}
+#
+#      - name: Deploy Amazon ECS task definition
+#        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+#        with:
+#          task-definition: ${{ steps.task-def.outputs.task-definition }}
+#          service: ${{ env.AWS_ECS_SERVICE }}
+#          cluster: ${{ env.AWS_ECS_CLUSTER }}
+#          wait-for-service-stability: true
+#  deploy:
+#    needs: build
+#    runs-on: self-hosted
+#    steps:
+#      - name: Pull Latest Image
+#        run: |
+#          sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_IMAGE_TAG }}
+#
+#      - name: Stop Current Running Container
+#        run: |
+#          sudo docker stop $(sudo docker ps -q) 2>/dev/null || true
+#
+#      - name: Run Latest Image
+#        run: |
+#          sudo docker run --name api-server --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_IMAGE_TAG }}
+#
+#      - name: Delete Old Image
+#        run: |
+#          sudo docker system prune -f
