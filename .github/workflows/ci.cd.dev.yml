@@ -17,11 +17,9 @@ env:
 
   AWS_REGION: ap-northeast-2
   AWS_ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY_NAME }}
-  AWS_ECS_SERVICE: m
-  AWS_ECS_CLUSTER: m
-  AWS_ECS_TASK_DEFINITION: m
-
-
+  AWS_ECS_SERVICE: ustory-dev-api-service
+  AWS_ECS_CLUSTER: ecs-cluster-dev
+  AWS_ECS_TASK_DEFINITION: ustory-dev-task
 
 jobs:
   build_and_deploy:
