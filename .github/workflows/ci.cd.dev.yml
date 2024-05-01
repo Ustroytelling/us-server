@@ -1,5 +1,5 @@
 # GitHub Action 설정
-name: 🚀 Build & Deploy workflow environment in Develop
+name: 🚀 [Develop] Build & Deploy workflow
 
 on:
   pull_request:
@@ -24,8 +24,9 @@ env:
 
 
 jobs:
-  build:
+  build_and_deploy:
     runs-on: ubuntu-latest
+    environment: develop
     steps:
       - name: ✅ Checkout branch
         uses: actions/checkout@v3
@@ -58,14 +59,6 @@ jobs:
         with:
           arguments: clean build -x test
           gradle-version: 8.3
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment: develop
-    steps:
-      - name: ✅ Checkout
-        uses: actions/checkout@v3
 
       - name: 🧳 Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
