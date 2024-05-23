@@ -31,7 +31,7 @@ public class CommentServiceImpl implements CommentService {
     private static final int CommentPageSize = 10;
 
     @Override
-    public GetCommentRes getCommentsOfNovel(Long novelId, int page) {
+    public GetCommentRes getCommentsOfNovel(Long novelId, int page, Long memberId) {
         if (page < 0) {
             throw new IllegalArgumentException(ExceptionMessage.PAGE_INDEX_OUT_OF_RANGE);
         }
@@ -39,12 +39,12 @@ public class CommentServiceImpl implements CommentService {
 
         PageRequest pageRequest = PageRequest.of(page, CommentPageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         List<CommentInfo> commentInfos = commentRepository.findSliceByNovel(novel, pageRequest)
-                .map(CommentInfo::mapCommentToCommentInfo).toList();
+                .map(comment -> CommentInfo.mapCommentToCommentInfo(comment, memberId)).toList();
         return new GetCommentRes(commentInfos);
     }
 
     @Override
-    public GetCommentRes getCommentsOfChapter(Long chapterId, int page) {
+    public GetCommentRes getCommentsOfChapter(Long chapterId, int page, Long memberId) {
         if (page < 0) {
             throw new IllegalArgumentException(ExceptionMessage.PAGE_INDEX_OUT_OF_RANGE);
         }
@@ -52,7 +52,7 @@ public class CommentServiceImpl implements CommentService {
 
         PageRequest pageRequest = PageRequest.of(page, CommentPageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         List<CommentInfo> commentInfos = commentRepository.findSliceByChapter(chapter, pageRequest)
-                .map(CommentInfo::mapCommentToCommentInfo).toList();
+                .map(comment -> CommentInfo.mapCommentToCommentInfo(comment, memberId)).toList();
 
         return new GetCommentRes(commentInfos);
     }
@@ -75,7 +75,7 @@ public class CommentServiceImpl implements CommentService {
                 .build());
         novel.getComments().add(comment);
 
-        return CommentInfo.fromComment(comment, novel.getTitle(), ZeroLikeCnt);
+        return CommentInfo.fromComment(comment, novel.getTitle(), ZeroLikeCnt, memberId);
     }
 
     @Override
@@ -101,7 +101,8 @@ public class CommentServiceImpl implements CommentService {
         return CommentInfo.fromComment(
                 comment,
                 chapter.getTitle(),
-                ZeroLikeCnt
+                ZeroLikeCnt,
+                memberId
         );
     }
 
@@ -115,7 +116,8 @@ public class CommentServiceImpl implements CommentService {
                         .fromComment(
                                 comment,
                                 comment.getChapter() == null ? comment.getNovel().getTitle() : comment.getChapter().getTitle(),
-                                comment.getCommentLikes().size()
+                                comment.getCommentLikes().size(),
+                                memberId
                         ))
                 .toList();
 

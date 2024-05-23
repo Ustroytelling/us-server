@@ -31,9 +31,10 @@ public class CommentController {
             content = @Content(schema = @Schema(implementation = GetCommentRes.class)))
     @GetMapping("/novel/{novelId}")
     public ApiCsResponse<GetCommentRes> getCommentsOfNovel(
+            @AuthenticationPrincipal Long memberId,
             @PathVariable Long novelId,
             @RequestParam(name = "page", defaultValue = "0") Integer page) {
-        GetCommentRes comments = commentService.getCommentsOfNovel(novelId, page);
+        GetCommentRes comments = commentService.getCommentsOfNovel(novelId, page, memberId);
         return ApiCsResponse.success(comments);
     }
 
@@ -42,9 +43,10 @@ public class CommentController {
             content = @Content(schema = @Schema(implementation = GetCommentRes.class)))
     @GetMapping("/chapter/{chapterId}")
     public ApiCsResponse<GetCommentRes> getCommentsOfChapter(
+            @AuthenticationPrincipal Long memberId,
             @PathVariable Long chapterId,
             @RequestParam(name = "page", defaultValue = "0") Integer page) {
-        GetCommentRes comments = commentService.getCommentsOfChapter(chapterId, page);
+        GetCommentRes comments = commentService.getCommentsOfChapter(chapterId, page, memberId);
         return ApiCsResponse.success(comments);
     }
 

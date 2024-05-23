@@ -7,8 +7,8 @@ import us.usserver.domain.comment.dto.GetCommentRes;
 
 @Service
 public interface CommentService {
-    GetCommentRes getCommentsOfNovel(Long novelId, int page);
-    GetCommentRes getCommentsOfChapter(Long chapterId, int page);
+    GetCommentRes getCommentsOfNovel(Long novelId, int page, Long memberId);
+    GetCommentRes getCommentsOfChapter(Long chapterId, int page, Long memberId);
 
     CommentInfo writeCommentOnNovel(Long novelId, Long memberId, CommentContent commentContent);
     CommentInfo writeCommentOnChapter(Long chapterId, Long memberId, CommentContent commentContent);

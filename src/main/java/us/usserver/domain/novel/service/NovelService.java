@@ -9,9 +9,9 @@ import us.usserver.domain.novel.dto.res.MoreNovelRes;
 
 @Service
 public interface NovelService {
-    NovelInfo getNovelInfo(Long novelId);
+    NovelInfo getNovelInfo(Long memberId, Long novelId);
 
-    NovelDetailInfo getNovelDetailInfo(Long novelId);
+    NovelDetailInfo getNovelDetailInfo(Long memberId, Long novelId);
 
     String modifyNovelSynopsis(Long novelId, Long memberId, String synopsis);
 

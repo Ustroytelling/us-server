@@ -50,8 +50,11 @@ public class NovelController {
     @ApiResponse(responseCode = "200", description = "소설 메인 페이지 조회",
             content = @Content(schema = @Schema(implementation = NovelDetailInfo.class)))
     @GetMapping("/{novelId}")
-    public ApiCsResponse<NovelInfo> getNovelInfo(@PathVariable Long novelId) {
-        NovelInfo novelInfo = novelService.getNovelInfo(novelId);
+    public ApiCsResponse<NovelInfo> getNovelInfo(
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable Long novelId
+    ) {
+        NovelInfo novelInfo = novelService.getNovelInfo(memberId, novelId);
         return ApiCsResponse.success(novelInfo);
     }
 
@@ -59,8 +62,11 @@ public class NovelController {
     @ApiResponse(responseCode = "200", description = "소설 상세 페이지 조회",
             content = @Content(schema = @Schema(implementation = NovelDetailInfo.class)))
     @GetMapping("/{novelId}/detail")
-    public ApiCsResponse<NovelDetailInfo> getNovelDetailInfo(@PathVariable Long novelId) {
-        NovelDetailInfo detailInfo = novelService.getNovelDetailInfo(novelId);
+    public ApiCsResponse<NovelDetailInfo> getNovelDetailInfo(
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable Long novelId
+    ) {
+        NovelDetailInfo detailInfo = novelService.getNovelDetailInfo(memberId, novelId);
         return ApiCsResponse.success(detailInfo);
     }
 

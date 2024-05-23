@@ -99,7 +99,7 @@ class NovelServiceTest {
     @DisplayName("소설 정보 확인")
     void getNovelInfo() {
         NovelInfo novelInfo = assertDoesNotThrow(
-                () -> novelService.getNovelInfo(novel.getId()));
+                () -> novelService.getNovelInfo(member.getId(), novel.getId()));
 
         assertThat(novelInfo.novelSharelUrl()).contains("");
     }
@@ -109,7 +109,7 @@ class NovelServiceTest {
     void getNotExistNovel() {
         // when
         BaseException baseException = assertThrows(BaseException.class,
-                () -> novelService.getNovelInfo(novel.getId() + 9999));
+                () -> novelService.getNovelInfo(member.getId(), novel.getId() + 9999));
 
         // then
         assertThat(baseException.getMessage()).isEqualTo(ExceptionMessage.NOVEL_NOT_FOUND);
@@ -119,7 +119,7 @@ class NovelServiceTest {
     @DisplayName("소설 상세 정보 확인")
     void getNovelDetailInfo() {
         NovelDetailInfo novelDetailInfo = assertDoesNotThrow(
-                () -> novelService.getNovelDetailInfo(novel.getId()));
+                () -> novelService.getNovelDetailInfo(member.getId(), novel.getId()));
 
         assertThat(novelDetailInfo.title()).isEqualTo(novel.getTitle());
         assertThat(novelDetailInfo.thumbnail()).isEqualTo(novel.getThumbnail());
@@ -148,7 +148,7 @@ class NovelServiceTest {
         novelRepository.save(novel);
 
         NovelDetailInfo novelDetailInfo = assertDoesNotThrow(
-                () -> novelService.getNovelDetailInfo(novel.getId()));
+                () -> novelService.getNovelDetailInfo(member.getId(), novel.getId()));
 
         // then
         assertThat(novelDetailInfo.title()).isEqualTo(novel.getTitle());

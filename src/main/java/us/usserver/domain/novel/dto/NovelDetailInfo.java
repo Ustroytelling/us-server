@@ -25,6 +25,9 @@ public record NovelDetailInfo (
         @Schema(description = "메인 작가 이름",example = "강아지상")
         String authorName,
 
+        @Schema(description = "메인 작가 ID ",example = "1")
+        Long authorId,
+
         @Schema(description = "메인 작가 소개",example = "안녕하세요. 메인자갑니다.")
         String authorIntroduction,
 

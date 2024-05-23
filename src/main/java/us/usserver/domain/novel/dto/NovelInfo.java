@@ -28,7 +28,9 @@ public record NovelInfo(
         @Schema(description = "좋아요 갯수",example = "998")
         Integer likeCnt,
         @Schema(description = "소설 공유 url",example = "https:// ~ ~")
-        String novelSharelUrl
+        String novelSharelUrl,
+        @Schema(description = "좋아요 유무", example = "true or false")
+        Boolean isLiked
 ) {
     public static NovelInfo mapNovelToNovelInfo(Novel novel) {
         return NovelInfo.builder()

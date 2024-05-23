@@ -60,7 +60,7 @@ public class ChapterServiceImpl implements ChapterService {
         List<Chapter> chapters = chapterRepository.findAllByNovelOrderByPart(novel);
         Integer commentCnt = commentRepository.countAllByChapter(chapter);
         List<Comment> comments = commentRepository.getTop3CommentOfChapter(chapter);
-        List<CommentInfo> commentInfos = comments.stream().map(comment -> CommentInfo.fromComment(comment, chapter.getTitle(), comment.getCommentLikes().size())).toList();
+        List<CommentInfo> commentInfos = comments.stream().map(comment -> CommentInfo.fromComment(comment, chapter.getTitle(), comment.getCommentLikes().size(), memberId)).toList();
         Double score = scoreRepository.findAverageScoreByChapter(chapter);
 
         Integer part = chapter.getPart();

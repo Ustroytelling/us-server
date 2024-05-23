@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import us.usserver.domain.author.dto.AuthorInfo;
 import us.usserver.domain.author.entity.Author;
 import us.usserver.domain.author.entity.ReadNovel;
 import us.usserver.domain.author.repository.AuthorRepository;
@@ -22,6 +23,7 @@ import us.usserver.domain.novel.dto.req.NovelBlueprint;
 import us.usserver.domain.novel.dto.res.MainPageRes;
 import us.usserver.domain.novel.dto.res.MoreNovelRes;
 import us.usserver.domain.novel.entity.Novel;
+import us.usserver.domain.novel.repository.NovelLikeRepository;
 import us.usserver.domain.novel.repository.NovelRepository;
 import us.usserver.global.EntityFacade;
 import us.usserver.global.response.exception.BaseException;
@@ -41,7 +43,7 @@ public class NovelServiceImpl implements NovelService {
 
     private final AuthorityRepository authorityRepository;
     private final NovelRepository novelRepository;
-    private final AuthorRepository authorRepository;
+    private final NovelLikeRepository novelLikeRepository;
 
     private static final Integer DEFAULT_PAGE_SIZE = 6;
 
@@ -61,14 +63,15 @@ public class NovelServiceImpl implements NovelService {
 
     @Override
     @Transactional
-    public NovelInfo getNovelInfo(Long novelId) {
+    public NovelInfo getNovelInfo(Long memberId, Long novelId) {
         Novel novel = entityFacade.getNovel(novelId);
-        return NovelInfo.mapNovelToNovelInfo(novel);
+        Boolean isLiked = novelLikeRepository.existsNovelLikeByAuthorIdAndNovelId(memberId, novelId);
+        return new NovelInfo(novel.getId(), novel.getTitle(), novel.getGenre(), novel.getHashtags(), AuthorInfo.fromAuthor(novel.getMainAuthor()), novel.getParticipantCnt(), novel.getComments().size(), novel.getNovelLikes().size(), "", isLiked);
     }
 
     @Override
     @Transactional
-    public NovelDetailInfo getNovelDetailInfo(Long novelId) {
+    public NovelDetailInfo getNovelDetailInfo(Long memberId, Long novelId) {
         Novel novel = entityFacade.getNovel(novelId);
         StakeInfoResponse stakeResponse = stakeService.getStakeInfoOfNovel(novelId);
 
@@ -80,6 +83,7 @@ public class NovelServiceImpl implements NovelService {
                 .thumbnail(novel.getThumbnail())
                 .synopsis(novel.getSynopsis())
                 .authorName(novel.getMainAuthor().getNickname())
+                .authorId(novel.getMainAuthor().getId())
                 .authorIntroduction(novel.getAuthorDescription())
                 .ageRating(novel.getAgeRating())
                 .genre(novel.getGenre())

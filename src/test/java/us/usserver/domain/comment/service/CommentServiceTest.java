@@ -80,7 +80,7 @@ class CommentServiceTest {
         // given
 
         // when
-        GetCommentRes commentsOfNovel = commentService.getCommentsOfNovel(novel.getId(), 0);
+        GetCommentRes commentsOfNovel = commentService.getCommentsOfNovel(novel.getId(), 0, member.getId());
 
         // then
         assertThat(commentsOfNovel.commentInfos()).isEqualTo(Collections.emptyList());
@@ -101,7 +101,7 @@ class CommentServiceTest {
         commentRepository.save(comment1);
         commentRepository.save(comment2);
         commentRepository.save(comment3);
-        GetCommentRes commentsOfNovel = commentService.getCommentsOfNovel(novel.getId(), 0);
+        GetCommentRes commentsOfNovel = commentService.getCommentsOfNovel(novel.getId(), 0, member.getId());
 
         // then
         assertThat(commentsOfNovel.commentInfos().size()).isEqualTo(3);
@@ -121,11 +121,11 @@ class CommentServiceTest {
         // when
         novelRepository.save(newNovel);
         commentRepository.save(newComment);
-        GetCommentRes before = commentService.getCommentsOfNovel(newNovel.getId(), 0);
+        GetCommentRes before = commentService.getCommentsOfNovel(newNovel.getId(), 0, member.getId());
         novelRepository.delete(newNovel);
         List<Comment> afterComments = commentRepository.findAllByAuthor(author);
         BaseException baseException = assertThrows(BaseException.class,
-                () -> commentService.getCommentsOfNovel(newNovel.getId(), 0));
+                () -> commentService.getCommentsOfNovel(newNovel.getId(), 0, member.getId()));
 
         // then
         assertThat(baseException.getMessage()).isEqualTo(ExceptionMessage.NOVEL_NOT_FOUND);
@@ -141,7 +141,7 @@ class CommentServiceTest {
         // given
 
         // when
-        GetCommentRes commentsOfChapter = commentService.getCommentsOfChapter(chapter.getId(), 0);
+        GetCommentRes commentsOfChapter = commentService.getCommentsOfChapter(chapter.getId(), 0, member.getId());
 
         // then
         assertThat(commentsOfChapter.commentInfos().size()).isZero();
@@ -162,7 +162,7 @@ class CommentServiceTest {
         commentRepository.save(comment1);
         commentRepository.save(comment2);
         commentRepository.save(comment3);
-        GetCommentRes commentsOfChapter = commentService.getCommentsOfChapter(chapter.getId(), 0);
+        GetCommentRes commentsOfChapter = commentService.getCommentsOfChapter(chapter.getId(), 0, member.getId());
 
         // then
         assertThat(commentsOfChapter.commentInfos().size()).isEqualTo(3);
@@ -182,10 +182,10 @@ class CommentServiceTest {
         novel.getChapters().add(newChapter);
         newChapter.getComments().add(newComment);
         chapterRepository.save(newChapter);
-        GetCommentRes before = commentService.getCommentsOfChapter(newChapter.getId(), 0);
+        GetCommentRes before = commentService.getCommentsOfChapter(newChapter.getId(), 0, member.getId());
         chapterRepository.delete(newChapter);
         BaseException baseException = assertThrows(BaseException.class,
-                () -> commentService.getCommentsOfChapter(newChapter.getId(), 0));
+                () -> commentService.getCommentsOfChapter(newChapter.getId(), 0, member.getId()));
         List<Comment> afterComments = commentRepository.findAllByAuthor(author);
 
         // then
@@ -439,8 +439,8 @@ class CommentServiceTest {
         }
 
         // when
-        GetCommentRes commentsOfNovel0 = commentService.getCommentsOfNovel(novel.getId(), 0);
-        GetCommentRes commentsOfNovel1 = commentService.getCommentsOfNovel(novel.getId(), 1);
+        GetCommentRes commentsOfNovel0 = commentService.getCommentsOfNovel(novel.getId(), 0, member.getId());
+        GetCommentRes commentsOfNovel1 = commentService.getCommentsOfNovel(novel.getId(), 1, member.getId());
 
         // then
         assertThat(commentsOfNovel0.commentInfos().size()).isEqualTo(10);
@@ -457,7 +457,7 @@ class CommentServiceTest {
 
         // when
         IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class,
-                () -> commentService.getCommentsOfNovel(novel.getId(), -1));
+                () -> commentService.getCommentsOfNovel(novel.getId(), -1, member.getId()));
 
         // then
         assertThat(illegalArgumentException.getMessage()).isEqualTo(ExceptionMessage.PAGE_INDEX_OUT_OF_RANGE);
@@ -473,8 +473,8 @@ class CommentServiceTest {
         }
 
         // when
-        GetCommentRes commentsOfNovel0 = commentService.getCommentsOfChapter(chapter.getId(), 0);
-        GetCommentRes commentsOfNovel1 = commentService.getCommentsOfChapter(chapter.getId(), 1);
+        GetCommentRes commentsOfNovel0 = commentService.getCommentsOfChapter(chapter.getId(), 0, member.getId());
+        GetCommentRes commentsOfNovel1 = commentService.getCommentsOfChapter(chapter.getId(), 1, member.getId());
 
         // then
         assertThat(commentsOfNovel0.commentInfos().size()).isEqualTo(10);
@@ -490,7 +490,7 @@ class CommentServiceTest {
 
         // when
         IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class,
-                () -> commentService.getCommentsOfChapter(novel.getId(), -1));
+                () -> commentService.getCommentsOfChapter(novel.getId(), -1, member.getId()));
 
         // then
         assertThat(illegalArgumentException.getMessage()).isEqualTo(ExceptionMessage.PAGE_INDEX_OUT_OF_RANGE);
