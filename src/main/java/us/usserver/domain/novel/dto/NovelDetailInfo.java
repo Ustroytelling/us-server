@@ -44,5 +44,8 @@ public record NovelDetailInfo (
         List<StakeInfo> stakeInfos,
 
         @Schema(description = "회차 정보", example = "[{}, {}, ...]")
-        List<ChapterInfo> chapterInfos
+        List<ChapterInfo> chapterInfos,
+
+        @Schema(description = "좋아요 유무", example = "true or false")
+        Boolean isLiked
 ) {}

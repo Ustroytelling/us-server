@@ -77,6 +77,7 @@ public class NovelServiceImpl implements NovelService {
 
         List<StakeInfo> stakeInfos = stakeResponse.getStakeInfos();
         List<ChapterInfo> chapterInfos = chapterService.getChaptersOfNovel(novel);
+        Boolean isLiked = novelLikeRepository.existsNovelLikeByAuthorIdAndNovelId(memberId, novelId);
 
         return NovelDetailInfo.builder()
                 .title(novel.getTitle())
@@ -90,6 +91,7 @@ public class NovelServiceImpl implements NovelService {
                 .hashtags(novel.getHashtags())
                 .stakeInfos(stakeInfos)
                 .chapterInfos(chapterInfos)
+                .isLiked(isLiked)
                 .build();
     }
 
