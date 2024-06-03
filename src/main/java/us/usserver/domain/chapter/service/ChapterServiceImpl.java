@@ -91,6 +91,7 @@ public class ChapterServiceImpl implements ChapterService {
                 .fontSize(author.getFontSize())
                 .paragraphSpace(author.getParagraphSpace())
                 .bestComments(commentInfos)
+                .mainAuthorId(novel.getMainAuthor().getId())
                 .build();
     }
 

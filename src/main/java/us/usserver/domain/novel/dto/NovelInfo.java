@@ -19,7 +19,7 @@ public record NovelInfo(
         Genre genre,
         @Schema(description = "해시태그",example = "[HASHTAG1, HASHTAG2, ...]")
         Set<Hashtag> hashtag,
-        @Schema(description = "메인 작가 이름",example = "강아지상")
+        @Schema(description = "메인 작가",example = "강아지상")
         AuthorInfo createdAuthor,
         @Schema(description = "참여 작가 수",example = "12")
         Integer joinedAuthorCnt,

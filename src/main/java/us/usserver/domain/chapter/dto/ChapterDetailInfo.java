@@ -47,5 +47,8 @@ public record ChapterDetailInfo(
         Integer paragraphSpace,
 
         @Schema(description = "베스트 댓글", example = "[댓글 1, 댓글 2, 댓글 3] 최대 3")
-        List<CommentInfo> bestComments
+        List<CommentInfo> bestComments,
+
+        @Schema(description = "메인 작가 id", example = "2")
+        Long mainAuthorId
 ) {}

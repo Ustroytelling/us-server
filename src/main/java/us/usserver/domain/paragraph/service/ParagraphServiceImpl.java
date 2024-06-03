@@ -97,6 +97,8 @@ public class ParagraphServiceImpl implements ParagraphService {
 
         chapter.getParagraphs().add(paragraph);
         return ParagraphInVoting.builder()
+                .id(paragraph.getId())
+                .authorId(memberId)
                 .content(paragraph.getContent())
                 .sequence(paragraph.getSequence())
                 .voteCnt(0)
