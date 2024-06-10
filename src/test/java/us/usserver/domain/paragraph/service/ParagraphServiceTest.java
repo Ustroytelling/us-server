@@ -289,4 +289,18 @@ class ParagraphServiceTest {
         assertThat(paragraph1.getParagraphStatus()).isEqualTo(ParagraphStatus.IN_VOTING);
         assertThat(paragraph2.getParagraphStatus()).isEqualTo(ParagraphStatus.IN_VOTING);
     }
+
+    @Test
+    @DisplayName("한줄 삭제하기")
+    void deleteParagraph() {
+        // given
+
+        // when
+        paragraphService.deleteParagraph(author.getId(), paragraph1.getId());
+        List<Paragraph> paragraphs = paragraphRepository.findAllByChapter(chapter);
+
+        // then
+        assertThat(paragraphs.size()).isEqualTo(1);
+        assertThat(paragraphs.get(0).getId()).isEqualTo(paragraph2.getId());
+    }
 }

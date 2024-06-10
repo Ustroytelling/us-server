@@ -58,7 +58,7 @@ public class ParagraphController {
     @Operation(summary = "한줄 선택하기", description = "다음으로 추가될 한줄을 선정(메인 작가만 가능)")
     @ApiResponse(responseCode = "201", description = "작성 성공")
     @PatchMapping("/{novelId}/{chapterId}/{paragraphId}")
-    public ResponseEntity<ApiCsResponse<Void>> selectParagraph(
+    public ResponseEntity<ApiCsResponse<Void>> deleteParagraph(
             @AuthenticationPrincipal Long memberId,
             @PathVariable Long novelId,
             @PathVariable Long chapterId,
@@ -69,6 +69,17 @@ public class ParagraphController {
         ApiCsResponse<Void> response = ApiCsResponse.success();
         URI redirectUri = URI.create("/paragraph/" + chapterId);
         return ResponseEntity.created(redirectUri).body(response);
+    }
+
+    @Operation(summary = "한줄 삭제하기", description = "선택한 한줄 삭제")
+    @ApiResponse(responseCode = "200", description = "삭제 성공")
+    @DeleteMapping("/{paragraphId}")
+    public ResponseEntity<ApiCsResponse<Void>> selectParagraph(
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable Long paragraphId
+    ) {
+        paragraphService.deleteParagraph(memberId, paragraphId);
+        return ResponseEntity.ok(ApiCsResponse.success());
     }
 
     @Operation(summary = "한줄 신고하기", description = "아직 기능 미확정")

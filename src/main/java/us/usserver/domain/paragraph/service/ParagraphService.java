@@ -17,5 +17,7 @@ public interface ParagraphService {
 
     void selectParagraph(Long memberId, Long novelId, Long chapterId, Long paragraphId);
 
+    void deleteParagraph(Long memberId, Long paragraphId);
+
     void reportParagraph(Long memberId, Long paragraphId);
 }

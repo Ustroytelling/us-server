@@ -141,6 +141,18 @@ public class ParagraphServiceImpl implements ParagraphService {
     }
 
     @Override
+    public void deleteParagraph(Long memberId, Long paragraphId) {
+        Author author = entityFacade.getAuthorByMemberId(memberId);
+        Paragraph paragraph = entityFacade.getParagraph(paragraphId);
+
+        if (!paragraph.getAuthor().getId().equals(author.getId())) {
+            throw new BaseException(ErrorCode.MAIN_AUTHOR_NOT_MATCHED);
+        }
+
+        paragraphRepository.delete(paragraph);
+    }
+
+    @Override
     public void reportParagraph(Long memberId, Long paragraphId) {
         Author author = entityFacade.getAuthorByMemberId(memberId);
         Paragraph paragraph = entityFacade.getParagraph(paragraphId);
